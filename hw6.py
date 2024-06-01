@@ -2,28 +2,23 @@ from collections import UserDict
 
 class Field:
     def __init__(self, value):
-        if self.__is_valid(value):
-            self.value = value
-        else:
-            raise ValueError
-        
-    def __is_valid(value):
-        return True
+        self.value = value
 
     def __str__(self):
         return str(self.value)
 
-class Name(Field):
-    def __is_valid(self, value):
-        if len(value)>0:
-            return True
-        raise ValueError
+class Name(Field): 
+    def __init__(self, name):
+        if not name:
+            raise ValueError("Name must not be empty.")
+        super().__init__(name)
 
-class Phone(Field):
-    def __is_valid(self, value):
-        if value.isdigit() and len(value) == 10:
-            return True
-        raise ValueError
+class Phone(Field): 
+    def __init__(self, phone):
+        if not phone.isdigit() or len(phone) != 10:
+            raise ValueError("Phone number must have 10 digits.")
+        super().__init__(phone)
+
 
 class Record: 
     def __init__(self, name):
@@ -39,43 +34,72 @@ class Record:
                 self.phones.remove(ph)
 
     def edit_phone(self, old_phone, new_phone):
-        phone_old = Phone(old_phone)
-        phone_new = Phone(new_phone)
-        self.remove_phone(phone_old.value)
-        self.add_phone(phone_new.value)
-        if not isinstance(new_phone, str) or len(new_phone) != 10 or not new_phone.isdigit():
-            raise ValueError("New phone number must be a string of 10 digits.")
-
+        phone_exists = False
         for p in self.phones:
             if p.value == old_phone:
-                p.value = new_phone
-                return
+                phone_exists = True
+                break
 
-        raise ValueError("Old phone number not found in record.")
+        if not phone_exists:
+            raise ValueError("Phone number to edit does not exist.")
 
-    def find_phone(self, phone_number):
-        ph = Phone(phone_number)
-        if ph in self.phones:
-            return ph
-        else:
-            raise ValueError
+        if not new_phone.isdigit() or len(new_phone) != 10:
+            raise ValueError("New phone number must be a 10-digit number.")
 
+        for ph in self.phones:
+            if ph.value == old_phone:
+                ph.value = new_phone
+
+    def find_phone(self, phone):
+        for ph in self.phones:
+            if ph.value == phone:
+                return ph
+        return None
     def __str__(self):
-        return f"Contact name: {self.name.value}, phones: {'; '.join(str(p) for p in self.phones)}"
+        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
 
 class AddressBook(UserDict):
-
     def add_record(self, record):
-        self.data[record.name] = record
+        self.data[record.name.value] = record
 
     def find(self, name):
-        for user_name, record in self.data.items():
-            if user_name.value == name:
-                return record
-        return None
+        return self.data.get(name)
 
     def delete(self, name):
-        for user_name, record in self.data.items():
-            if user_name.value == name:
-                del self.data[record.name]
-                break
+        if name in self.data:
+            del self.data[name]
+        else:
+            raise ValueError("Name not found")
+
+# Створення нової адресної книги
+book = AddressBook()
+
+    # Створення запису для John
+john_record = Record("John")
+john_record.add_phone("1234567890")
+john_record.add_phone("5555555555")
+
+    # Додавання запису John до адресної книги
+book.add_record(john_record)
+
+    # Створення та додавання нового запису для Jane
+jane_record = Record("Jane")
+jane_record.add_phone("9876543210")
+book.add_record(jane_record)
+
+    # Виведення всіх записів у книзі
+for name, record in book.data.items():
+        print(record)
+
+    # Знаходження та редагування телефону для John
+john = book.find("John")
+john.edit_phone("1234567890", "1112223333")
+
+print(john)  # Виведення: Contact name: John, phones: 1112223333; 5555555555
+
+    # Пошук конкретного телефону у записі John
+found_phone = john.find_phone("5555555555")
+print(f"{john.name}: {found_phone}")  # Виведення: John: 5555555555
+
+    # Видалення запису Jane
+book.delete("Jane")
