@@ -39,22 +39,29 @@ class Record:
                 self.phones.remove(ph)
 
     def edit_phone(self, old_phone, new_phone):
-        phone_exists = False
+        phone_old = Phone(old_phone)
+        phone_new = Phone(new_phone)
+        self.remove_phone(phone_old.value)
+        self.add_phone(phone_new.value)
+        if not isinstance(new_phone, str) or len(new_phone) != 10 or not new_phone.isdigit():
+            raise ValueError("New phone number must be a string of 10 digits.")
+
         for p in self.phones:
             if p.value == old_phone:
-                phone_exists = True
-                break
+                p.value = new_phone
+                return
 
-        if not phone_exists:
-            raise ValueError("Phone number to edit does not exist.")
+        raise ValueError("Old phone number not found in record.")
 
-        if not new_phone.isdigit() or len(new_phone) != 10:
-            raise ValueError("New phone number must be a 10-digit number.")
+    def find_phone(self, phone_number):
+        for phone in self.phones:
+            if str(phone) == phone_number:
+                return phone
+            else:
+                return None
 
-        for ph in self.phones:
-            if ph.value == old_phone:
-                ph.value = new_phone
-
+    def __str__(self):
+        return f"Contact name: {self.name.value}, phones: {'; '.join(str(p) for p in self.phones)}"
 class AddressBook(UserDict):
 
     def add_record(self, record):
