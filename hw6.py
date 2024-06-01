@@ -6,7 +6,7 @@ class Field:
             self.value = value
         else:
             raise ValueError
-
+        
     def __is_valid(value):
         return True
 
@@ -14,28 +14,22 @@ class Field:
         return str(self.value)
 
 class Name(Field):
-    def __init__(self, value):
-        if self.__is_valid(value):
-            self.value = value
-        else:
-            raise ValueError
-
     def __is_valid(self, value):
         if len(value)>0:
             return True
         raise ValueError
 
-class Phone(Field):  
-    def __init__(self, phone):
-        if not phone.isdigit() or len(phone) != 10:
-            raise ValueError("Phone number must have 10 digits.")
-        super().__init__(phone)
+class Phone(Field):
+    def __is_valid(self, value):
+        if value.isdigit() and len(value) == 10:
+            return True
+        raise ValueError
 
 class Record: 
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
-        
+
     def add_phone(self, phone):
         self.phones.append(Phone(phone))
 
