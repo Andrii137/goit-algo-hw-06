@@ -2,84 +2,78 @@ from collections import UserDict
 
 class Field:
     def __init__(self, value):
-        self.value = value
+        if self.__is_valid(value):
+            self.value = value
+        else:
+            raise ValueError
+
+    def __is_valid(value):
+        return True
 
     def __str__(self):
         return str(self.value)
 
 class Name(Field):
-    pass
-
-class Phone(Field):
     def __init__(self, value):
-        if not isinstance(value, str) or len(value) != 10 or not value.isdigit():
-            raise ValueError("Phone number must be a string of 10 digits.")
-        super().__init__(value)
+        if self.__is_valid(value):
+            self.value = value
+        else:
+            raise ValueError
 
-class Record:
+    def __is_valid(self, value):
+        if len(value)>0:
+            return True
+        raise ValueError
+
+class Phone(Field):  
+    def __init__(self, phone):
+        if not phone.isdigit() or len(phone) != 10:
+            raise ValueError("Phone number must have 10 digits.")
+        super().__init__(phone)
+
+class Record: 
     def __init__(self, name):
         self.name = Name(name)
         self.phones = []
-
+        
     def add_phone(self, phone):
         self.phones.append(Phone(phone))
 
     def remove_phone(self, phone):
-        self.phones = [p for p in self.phones if p.value != phone]
+        for ph in self.phones:
+            if ph.value == phone:
+                self.phones.remove(ph)
 
     def edit_phone(self, old_phone, new_phone):
-        if not isinstance(new_phone, str) or len(new_phone) != 10 or not new_phone.isdigit():
-            raise ValueError("New phone number must be a string of 10 digits.")
-        
+        phone_exists = False
         for p in self.phones:
             if p.value == old_phone:
-                p.value = new_phone
-                return
+                phone_exists = True
+                break
 
-        raise ValueError("Old phone number not found in record.")
+        if not phone_exists:
+            raise ValueError("Phone number to edit does not exist.")
 
-    def find_phone(self, phone):
-        for p in self.phones:
-            if p.value == phone:
-                return p.value
-        return None
+        if not new_phone.isdigit() or len(new_phone) != 10:
+            raise ValueError("New phone number must be a 10-digit number.")
 
-    def __str__(self):
-        return f"Contact name: {self.name.value}, phones: {'; '.join(str(p) for p in self.phones)}"
+        for ph in self.phones:
+            if ph.value == old_phone:
+                ph.value = new_phone
 
 class AddressBook(UserDict):
+
     def add_record(self, record):
-        self.data[record.name.value] = record
+        self.data[record.name] = record
 
     def find(self, name):
-        return self.data.get(name, None)
+        for user_name, record in self.data.items():
+            if user_name.value == name:
+                return record
+        return None
 
     def delete(self, name):
-        if name in self.data:
-            del self.data[name]
-            
-if __name__=="__main__":
-    book = AddressBook()
-
-    john_record = Record("John")
-    john_record.add_phone("1234567890")
-    john_record.add_phone("5555555555")
-
-    book.add_record(john_record)
-
-    jane_record = Record("Jane")
-    jane_record.add_phone("9876543210")
-    book.add_record(jane_record)
-
-    for name, record in book.data.items():
-        print(record)
-
-    john = book.find("John")
-    john.edit_phone("1234567890", "1112223333")
-
-    print(john)  
-
-    found_phone = john.find_phone("5555555555")
-    print(f"{john.name}: {found_phone}")  
-
-    book.delete("Jane")
+        for user_name, record in self.data.items():
+            if user_name.value == name:
+                del self.data[record.name]
+                break
