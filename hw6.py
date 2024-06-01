@@ -54,14 +54,15 @@ class Record:
         raise ValueError("Old phone number not found in record.")
 
     def find_phone(self, phone_number):
-        for phone in self.phones:
-            if str(phone) == phone_number:
-                return phone
-            else:
-                return None
+        ph = Phone(phone_number)
+        if ph in self.phones:
+            return ph
+        else:
+            raise ValueError
 
     def __str__(self):
         return f"Contact name: {self.name.value}, phones: {'; '.join(str(p) for p in self.phones)}"
+
 class AddressBook(UserDict):
 
     def add_record(self, record):
